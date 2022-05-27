@@ -19,6 +19,7 @@ contract CruzoMarket is ERC1155Holder, Ownable {
     }
 
     mapping(uint256 => Trade) private trades;
+    mapping(uint256 => bool) private tradingTrack;
 
     uint256 private tradeCounter;
 
@@ -48,10 +49,7 @@ contract CruzoMarket is ERC1155Holder, Ownable {
             itemToken.balanceOf(msg.sender, _itemId) != 0,
             "Error: Only owner can list"
         );
-        require(
-            existTrade(_itemId) == false,
-            "Error: This item already opened in trading"
-        );
+        require(tradingTrack[_itemId] != true,"Error: This item already opened in trading");
         itemToken.safeTransferFrom(
             payable(msg.sender),
             address(this),
@@ -67,17 +65,9 @@ contract CruzoMarket is ERC1155Holder, Ownable {
             price: _price,
             status: "Open"
         });
-
+        tradingTrack[_itemId] = true;
         tradeCounter += 1;
         emit TradeStatusChange(tradeCounter - 1, "Open");
-    }
-    function existTrade(uint256 _itemId) public view returns (bool){
-        for (uint i; i <= tradeCounter; i++) {
-            if (trades[i].itemId == _itemId) {
-                return true;
-            }    
-        }
-        return false;
     }
     /*
     Buyer execute trade and pass the trade number
